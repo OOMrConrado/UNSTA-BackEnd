@@ -1,6 +1,6 @@
 1- Crear carpeta y clase Dto
 2- Crear carpeta e interfaz para repositorio
-3- Instalar AutoMapper, AutoMapper.Extensions.Microsoft.DependencyInjection
+3- Instalar AutoMapper
 4- En la raiz del proyecto crear archivo y clase 
 MappingConfiguration {
  public static MapperConfiguration RegisterMaps(){
