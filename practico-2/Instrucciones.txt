@@ -21,4 +21,3 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<IArticuloRepositorio, ArticuloRepositorio>();
 8- Actualizar controlador para que use Repositorio.
 
- 
