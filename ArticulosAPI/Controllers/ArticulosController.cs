@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ArticulosAPI.Data;
-using ArticulosAPI.Modelos;
+using ArticulosAPI.Dto;
+using ArticulosAPI.Repositorio;
 
 namespace ArticulosAPI.Controllers
 {
@@ -14,95 +13,116 @@ namespace ArticulosAPI.Controllers
     [ApiController]
     public class ArticulosController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IArticuloRepositorio _articuloRepositorio;
+        protected ResponseDto _response;
 
-        public ArticulosController(ApplicationDbContext context)
+        public ArticulosController(IArticuloRepositorio articuloRepositorio)
         {
-            _context = context;
+            _articuloRepositorio = articuloRepositorio;
+            _response = new ResponseDto();
         }
 
-        // GET: api/Articulos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Articulo>>> GetArticulos()
+        public async Task<ActionResult<ResponseDto>> GetArticulos()
         {
-            return await _context.Articulos.ToListAsync();
-        }
-
-        // GET: api/Articulos/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Articulo>> GetArticulo(int id)
-        {
-            var articulo = await _context.Articulos.FindAsync(id);
-
-            if (articulo == null)
-            {
-                return NotFound();
-            }
-
-            return articulo;
-        }
-
-        // PUT: api/Articulos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutArticulo(int id, Articulo articulo)
-        {
-            if (id != articulo.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(articulo).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var lista = await _articuloRepositorio.GetArticulos();
+                _response.Result = lista;
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!ArticuloExists(id))
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ResponseDto>> GetArticulo(int id)
+        {
+            try
+            {
+                var articulo = await _articuloRepositorio.GetArticulo(id);
+                if (articulo == null)
                 {
-                    return NotFound();
+                    _response.IsSuccess = false;
+                    _response.DisplayMessage = "Artículo no encontrado";
                 }
                 else
                 {
-                    throw;
+                    _response.Result = articulo;
                 }
             }
-
-            return NoContent();
-        }
-
-        // POST: api/Articulos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Articulo>> PostArticulo(Articulo articulo)
-        {
-            _context.Articulos.Add(articulo);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetArticulo", new { id = articulo.Id }, articulo);
-        }
-
-        // DELETE: api/Articulos/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteArticulo(int id)
-        {
-            var articulo = await _context.Articulos.FindAsync(id);
-            if (articulo == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
             }
-
-            _context.Articulos.Remove(articulo);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return _response;
         }
 
-        private bool ArticuloExists(int id)
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ResponseDto>> PutArticulo(int id, ArticuloDto articuloDto)
         {
-            return _context.Articulos.Any(e => e.Id == id);
+            try
+            {
+                if (id != articuloDto.Id)
+                {
+                    _response.IsSuccess = false;
+                    _response.DisplayMessage = "El Id no coincide";
+                    return BadRequest(_response);
+                }
+
+                var articulo = await _articuloRepositorio.CreateUpdate(articuloDto);
+                _response.Result = articulo;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ResponseDto>> PostArticulo(ArticuloDto articuloDto)
+        {
+            try
+            {
+                var articulo = await _articuloRepositorio.CreateUpdate(articuloDto);
+                _response.Result = articulo;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<ResponseDto>> DeleteArticulo(int id)
+        {
+            try
+            {
+                bool isSuccess = await _articuloRepositorio.DeleteArticulo(id);
+                if (isSuccess)
+                {
+                    _response.Result = true;
+                }
+                else
+                {
+                    _response.IsSuccess = false;
+                    _response.DisplayMessage = "Artículo no encontrado";
+                }
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { ex.ToString() };
+            }
+            return _response;
         }
     }
 }

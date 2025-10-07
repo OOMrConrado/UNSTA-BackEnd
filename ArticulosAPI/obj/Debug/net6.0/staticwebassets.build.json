@@ -1,11 +1,12 @@
 {
   "Version": 1,
-  "Hash": "qi5far9I8BSLxQbqSFqijibYxt1hSJpOWhHwMYOp9bY=",
+  "Hash": "ZJ1E3rkE1EflhWGP7juo82bB0LHBO8l7vj5V3gc2vmY=",
   "Source": "ArticulosAPI",
   "BasePath": "_content/ArticulosAPI",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": []
+  "Assets": [],
+  "Endpoints": []
 }
